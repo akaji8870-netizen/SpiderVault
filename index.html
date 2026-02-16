@@ -3,95 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpiderVault</title>
+<title>SpiderVault Pro</title>
+
 <style>
-body {
+body{
   margin:0;
   font-family:Arial;
-  background:#0d0d0d;
+  background:#0f0f0f;
   color:white;
 }
-header {
-  background:#1a0000;
+header{
+  background:#8b0000;
   padding:15px;
   text-align:center;
-  font-size:24px;
+  font-size:22px;
   font-weight:bold;
-  color:red;
 }
-.card {
-  background:#1a1a1a;
+.card{
+  background:#1c1c1c;
   margin:15px;
   padding:15px;
-  border-radius:10px;
+  border-radius:12px;
 }
-button {
+button{
   background:red;
+  color:white;
   border:none;
   padding:8px 12px;
-  color:white;
-  border-radius:5px;
+  border-radius:6px;
+  cursor:pointer;
 }
-.cart {
-  position:fixed;
-  bottom:0;
+input,select,textarea{
   width:100%;
-  background:black;
-  padding:10px;
+  padding:8px;
+  margin:5px 0;
+  border-radius:6px;
+  border:none;
+}
+.hidden{display:none;}
+.success{
   text-align:center;
+  padding:20px;
+  animation:pop 0.4s ease;
+}
+@keyframes pop{
+  from{transform:scale(0.7);}
+  to{transform:scale(1);}
+}
+.admin-btn{
+  position:fixed;
+  top:10px;
+  right:10px;
+  background:black;
 }
 </style>
 </head>
+
 <body>
 
-<header>SpiderVault</header>
+<header>SpiderVault PRO</header>
+<button class="admin-btn" onclick="adminLogin()">Admin</button>
+
+<div id="store">
 
 <div class="card">
 <h3>Donut SMP - VIP Rank</h3>
 <p>$9.99</p>
-<button onclick="addToCart('VIP Rank', 9.99)">Add</button>
+<button onclick="addToCart('Donut SMP - VIP Rank',9.99)">Add</button>
 </div>
 
 <div class="card">
 <h3>FireMC - 10,000 Coins</h3>
 <p>$4.99</p>
-<button onclick="addToCart('10k Coins', 4.99)">Add</button>
+<button onclick="addToCart('FireMC - 10,000 Coins',4.99)">Add</button>
 </div>
 
 <div class="card">
 <h3>Hypixel - MVP Rank</h3>
 <p>$24.99</p>
-<button onclick="addToCart('MVP Rank', 24.99)">Add</button>
+<button onclick="addToCart('Hypixel - MVP Rank',24.99)">Add</button>
 </div>
 
-<div class="cart">
-<span id="total">Total: $0</span>
+<div class="card">
+<h3>Total: $<span id="total">0</span></h3>
 <button onclick="checkout()">Checkout</button>
 </div>
 
-<script>
-let total = 0;
+</div>
 
-function addToCart(name, price){
-  total += price;
-  document.getElementById("total").innerText = "Total: $" + total.toFixed(2);
+<div id="payment" class="hidden card">
+<h2>Payment Page</h2>
+
+<label>IGN</label>
+<input id="ign">
+
+<label>Server Type</label>
+<select id="serverType">
+<option>Java</option>
+<option>Bedrock</option>
+</select>
+
+<label>Launcher</label>
+<select id="launcher">
+<option>Official</option>
+<option>TLauncher</option>
+<option>Other</option>
+</select>
+
+<label>UTR ID</label>
+<input id="utr">
+
+<label>Upload Payment Screenshot</label>
+<input type="file" id="screenshot">
+
+<button onclick="submitOrder()">Submit Order</button>
+</div>
+
+<div id="success" class="hidden success">
+<h2>🎉 Order Submitted!</h2>
+<p>Waiting for Admin Approval</p>
+</div>
+
+<div id="adminPanel" class="hidden">
+<header>Admin Panel</header>
+<div class="card">
+<input placeholder="Search Username" id="searchUser">
+<button onclick="renderOrders()">Search</button>
+</div>
+<div id="orders"></div>
+</div>
+
+<script>
+
+let cart=[]
+let total=0
+
+function addToCart(name,price){
+  cart.push(name)
+  total+=price
+  document.getElementById("total").innerText=total.toFixed(2)
 }
 
 function checkout(){
-  if(total == 0){
-    alert("Cart empty!");
-    return;
-  }
-  let ign = prompt("Enter IGN:");
-  let utr = prompt("Enter UTR ID:");
-  if(!ign || !utr){
-    alert("All fields required!");
-    return;
-  }
-  alert("Order placed! Status: Payment Pending");
-  total = 0;
-  document.getElementById("total").innerText = "Total: $0";
+  if(cart.length==0){alert("Cart empty");return;}
+  document.getElementById("store").classList.add("hidden")
+  document.getElementById("payment").classList.remove("hidden")
 }
+
+function submitOrder(){
+  let ign=document.getElementById("ign").value
+  let utr=document.getElementById("utr").value
+
+  if(!ign || !utr){alert("Fill required fields");return;}
+
+  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
+
+  orders.push({
+    ign:ign,
+    items:cart,
+    total:total,
+    utr:utr,
+    status:"Payment Pending",
+    privateData:"",
+    message:""
+  })
+
+  localStorage.setItem("orders",JSON.stringify(orders))
+
+  cart=[]
+  total=0
+
+  document.getElementById("payment").classList.add("hidden")
+  document.getElementById("success").classList.remove("hidden")
+}
+
+function adminLogin(){
+  let user=prompt("Admin Username:")
+  let pass=prompt("Admin Password:")
+
+  if(user==="Arif" && pass==="arif12"){
+    document.getElementById("store").classList.add("hidden")
+    document.getElementById("adminPanel").classList.remove("hidden")
+    renderOrders()
+  }else{
+    alert("Wrong credentials")
+  }
+}
+
+function renderOrders(){
+  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
+  let html=""
+  orders.reverse().forEach((o,i)=>{
+    html+=`
+    <div class="card">
+    <p><b>${o.ign}</b></p>
+    <p>Items: ${o.items.join(", ")}</p>
+    <p>Total: $${o.total}</p>
+    <p>Status: ${o.status}</p>
+    <button onclick="completeOrder(${orders.length-1-i})">Mark Completed</button>
+    </div>`
+  })
+  document.getElementById("orders").innerHTML=html
+}
+
+function completeOrder(index){
+  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
+  let msg=prompt("Delivery Message:")
+  let pdata=prompt("Private Delivery Data:")
+
+  orders[index].status="Completed"
+  orders[index].message=msg
+  orders[index].privateData=pdata
+
+  localStorage.setItem("orders",JSON.stringify(orders))
+  renderOrders()
+}
+
 </script>
 
 </body>
