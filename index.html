@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpiderVault</title>
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0d0d0d;
+  color:white;
+}
+header {
+  background:#1a0000;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+  color:red;
+}
+.card {
+  background:#1a1a1a;
+  margin:15px;
+  padding:15px;
+  border-radius:10px;
+}
+button {
+  background:red;
+  border:none;
+  padding:8px 12px;
+  color:white;
+  border-radius:5px;
+}
+.cart {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:black;
+  padding:10px;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+
+<header>SpiderVault</header>
+
+<div class="card">
+<h3>Donut SMP - VIP Rank</h3>
+<p>$9.99</p>
+<button onclick="addToCart('VIP Rank', 9.99)">Add</button>
+</div>
+
+<div class="card">
+<h3>FireMC - 10,000 Coins</h3>
+<p>$4.99</p>
+<button onclick="addToCart('10k Coins', 4.99)">Add</button>
+</div>
+
+<div class="card">
+<h3>Hypixel - MVP Rank</h3>
+<p>$24.99</p>
+<button onclick="addToCart('MVP Rank', 24.99)">Add</button>
+</div>
+
+<div class="cart">
+<span id="total">Total: $0</span>
+<button onclick="checkout()">Checkout</button>
+</div>
+
+<script>
+let total = 0;
+
+function addToCart(name, price){
+  total += price;
+  document.getElementById("total").innerText = "Total: $" + total.toFixed(2);
+}
+
+function checkout(){
+  if(total == 0){
+    alert("Cart empty!");
+    return;
+  }
+  let ign = prompt("Enter IGN:");
+  let utr = prompt("Enter UTR ID:");
+  if(!ign || !utr){
+    alert("All fields required!");
+    return;
+  }
+  alert("Order placed! Status: Payment Pending");
+  total = 0;
+  document.getElementById("total").innerText = "Total: $0";
+}
+</script>
+
+</body>
+</html>
