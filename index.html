@@ -1,225 +1,237 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SpiderVault Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpiderVault</title>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:white;
+margin:0;
+font-family:Arial, sans-serif;
+background:linear-gradient(135deg,#0a0f2c,#8b0000);
+color:white;
 }
+
 header{
-  background:#8b0000;
-  padding:15px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
+text-align:center;
+padding:20px;
+font-size:26px;
+font-weight:bold;
+background:black;
+box-shadow:0 0 20px red;
+letter-spacing:2px;
 }
+
 .card{
-  background:#1c1c1c;
-  margin:15px;
-  padding:15px;
-  border-radius:12px;
+background:rgba(0,0,0,0.85);
+border:2px solid red;
+border-radius:15px;
+padding:15px;
+margin:15px;
+box-shadow:0 0 15px red;
 }
+
 button{
-  background:red;
-  color:white;
-  border:none;
-  padding:8px 12px;
-  border-radius:6px;
-  cursor:pointer;
+background:linear-gradient(45deg,red,blue);
+border:none;
+color:white;
+padding:10px;
+border-radius:8px;
+margin-top:8px;
+width:100%;
+font-weight:bold;
 }
-input,select,textarea{
-  width:100%;
-  padding:8px;
-  margin:5px 0;
-  border-radius:6px;
-  border:none;
+
+input{
+width:100%;
+padding:8px;
+margin-top:6px;
+border-radius:8px;
+border:none;
 }
+
+img{
+width:100%;
+border-radius:10px;
+margin-top:5px;
+}
+
 .hidden{display:none;}
-.success{
-  text-align:center;
-  padding:20px;
-  animation:pop 0.4s ease;
-}
-@keyframes pop{
-  from{transform:scale(0.7);}
-  to{transform:scale(1);}
-}
-.admin-btn{
-  position:fixed;
-  top:10px;
-  right:10px;
-  background:black;
+
+.adminBtn{
+position:fixed;
+top:10px;
+right:10px;
+background:black;
+padding:8px 12px;
+border-radius:8px;
+box-shadow:0 0 10px red;
 }
 </style>
 </head>
 
 <body>
 
-<header>SpiderVault PRO</header>
-<button class="admin-btn" onclick="adminLogin()">Admin</button>
+<header>🕷️ SpiderVault</header>
+<button class="adminBtn" onclick="adminLogin()">Admin</button>
 
-<div id="store">
-
-<div class="card">
-<h3>Donut SMP - VIP Rank</h3>
-<p>$9.99</p>
-<button onclick="addToCart('Donut SMP - VIP Rank',9.99)">Add</button>
-</div>
-
-<div class="card">
-<h3>FireMC - 10,000 Coins</h3>
-<p>$4.99</p>
-<button onclick="addToCart('FireMC - 10,000 Coins',4.99)">Add</button>
-</div>
-
-<div class="card">
-<h3>Hypixel - MVP Rank</h3>
-<p>$24.99</p>
-<button onclick="addToCart('Hypixel - MVP Rank',24.99)">Add</button>
-</div>
-
-<div class="card">
-<h3>Total: $<span id="total">0</span></h3>
-<button onclick="checkout()">Checkout</button>
-</div>
-
-</div>
-
-<div id="payment" class="hidden card">
-<h2>Payment Page</h2>
-
-<label>IGN</label>
-<input id="ign">
-
-<label>Server Type</label>
-<select id="serverType">
-<option>Java</option>
-<option>Bedrock</option>
-</select>
-
-<label>Launcher</label>
-<select id="launcher">
-<option>Official</option>
-<option>TLauncher</option>
-<option>Other</option>
-</select>
-
-<label>UTR ID</label>
-<input id="utr">
-
-<label>Upload Payment Screenshot</label>
-<input type="file" id="screenshot">
-
-<button onclick="submitOrder()">Submit Order</button>
-</div>
-
-<div id="success" class="hidden success">
-<h2>🎉 Order Submitted!</h2>
-<p>Waiting for Admin Approval</p>
-</div>
-
-<div id="adminPanel" class="hidden">
-<header>Admin Panel</header>
-<div class="card">
-<input placeholder="Search Username" id="searchUser">
-<button onclick="renderOrders()">Search</button>
-</div>
-<div id="orders"></div>
-</div>
+<div id="store"></div>
+<div id="cartSection"></div>
+<div id="paymentSection" class="hidden"></div>
+<div id="successSection" class="hidden"></div>
+<div id="adminPanel" class="hidden"></div>
 
 <script>
 
-let cart=[]
-let total=0
+let adminUser="Arif";
+let adminPass="arif12";
 
-function addToCart(name,price){
-  cart.push(name)
-  total+=price
-  document.getElementById("total").innerText=total.toFixed(2)
+let products=JSON.parse(localStorage.getItem("sv_products"))||[
+{name:"VIP Rank",price:199,img:"https://via.placeholder.com/300x200"},
+{name:"MVP Rank",price:499,img:"https://via.placeholder.com/300x200"}
+];
+
+let orders=JSON.parse(localStorage.getItem("sv_orders"))||[];
+let cart=[];
+
+function save(){
+localStorage.setItem("sv_products",JSON.stringify(products));
+localStorage.setItem("sv_orders",JSON.stringify(orders));
+}
+
+function renderStore(){
+let html="";
+products.forEach((p,i)=>{
+html+=`
+<div class="card">
+<img src="${p.img}">
+<h3>${p.name}</h3>
+<p>₹${p.price}</p>
+<button onclick="addToCart(${i})">Add to Cart</button>
+</div>`;
+});
+document.getElementById("store").innerHTML=html;
+renderCart();
+}
+
+function addToCart(i){
+cart.push(products[i]);
+renderCart();
+}
+
+function renderCart(){
+let total=0;
+let html=`<div class="card"><h2>Cart</h2>`;
+cart.forEach(c=>{
+total+=c.price;
+html+=`<p>${c.name} - ₹${c.price}</p>`;
+});
+html+=`<h3>Total: ₹${total}</h3>`;
+if(cart.length>0){
+html+=`<button onclick="checkout()">Proceed to Payment</button>`;
+}
+html+=`</div>`;
+document.getElementById("cartSection").innerHTML=html;
 }
 
 function checkout(){
-  if(cart.length==0){alert("Cart empty");return;}
-  document.getElementById("store").classList.add("hidden")
-  document.getElementById("payment").classList.remove("hidden")
+document.getElementById("paymentSection").classList.remove("hidden");
+document.getElementById("paymentSection").innerHTML=`
+<div class="card">
+<h2>Payment</h2>
+<input id="ign" placeholder="Minecraft IGN">
+<input id="utr" placeholder="Enter UTR ID">
+<input type="file" id="proof">
+<button onclick="placeOrder()">Submit Order</button>
+</div>`;
 }
 
-function submitOrder(){
-  let ign=document.getElementById("ign").value
-  let utr=document.getElementById("utr").value
+function placeOrder(){
+let ign=document.getElementById("ign").value;
+let utr=document.getElementById("utr").value;
+if(!ign||!utr){alert("Fill all fields");return;}
 
-  if(!ign || !utr){alert("Fill required fields");return;}
+let total=cart.reduce((a,b)=>a+b.price,0);
 
-  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
+orders.push({
+ign:ign,
+items:cart,
+total:total,
+utr:utr,
+status:"Pending"
+});
 
-  orders.push({
-    ign:ign,
-    items:cart,
-    total:total,
-    utr:utr,
-    status:"Payment Pending",
-    privateData:"",
-    message:""
-  })
-
-  localStorage.setItem("orders",JSON.stringify(orders))
-
-  cart=[]
-  total=0
-
-  document.getElementById("payment").classList.add("hidden")
-  document.getElementById("success").classList.remove("hidden")
+save();
+cart=[];
+renderStore();
+document.getElementById("paymentSection").classList.add("hidden");
+document.getElementById("successSection").classList.remove("hidden");
+document.getElementById("successSection").innerHTML=`
+<div class="card">
+<h2>🕷️ Order Submitted</h2>
+<p>Status: Pending</p>
+</div>`;
 }
 
 function adminLogin(){
-  let user=prompt("Admin Username:")
-  let pass=prompt("Admin Password:")
-
-  if(user==="Arif" && pass==="arif12"){
-    document.getElementById("store").classList.add("hidden")
-    document.getElementById("adminPanel").classList.remove("hidden")
-    renderOrders()
-  }else{
-    alert("Wrong credentials")
-  }
+let u=prompt("Username");
+let p=prompt("Password");
+if(u===adminUser && p===adminPass){
+openAdmin();
+}else{
+alert("Wrong");
+}
 }
 
-function renderOrders(){
-  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
-  let html=""
-  orders.reverse().forEach((o,i)=>{
-    html+=`
-    <div class="card">
-    <p><b>${o.ign}</b></p>
-    <p>Items: ${o.items.join(", ")}</p>
-    <p>Total: $${o.total}</p>
-    <p>Status: ${o.status}</p>
-    <button onclick="completeOrder(${orders.length-1-i})">Mark Completed</button>
-    </div>`
-  })
-  document.getElementById("orders").innerHTML=html
+function openAdmin(){
+document.getElementById("store").classList.add("hidden");
+document.getElementById("cartSection").classList.add("hidden");
+document.getElementById("paymentSection").classList.add("hidden");
+document.getElementById("successSection").classList.add("hidden");
+document.getElementById("adminPanel").classList.remove("hidden");
+
+let html=`<div class="card"><h2>Admin Panel</h2></div>`;
+
+html+=`<div class="card">
+<h3>Add Product</h3>
+<input id="pname" placeholder="Product Name">
+<input id="pprice" placeholder="Price">
+<input id="pimg" placeholder="Image URL">
+<button onclick="addProduct()">Add Product</button>
+</div>`;
+
+orders.forEach((o,i)=>{
+html+=`
+<div class="card">
+<p><b>${o.ign}</b></p>
+<p>Total: ₹${o.total}</p>
+<p>UTR: ${o.utr}</p>
+<p>Status: ${o.status}</p>
+<button onclick="markPaid(${i})">Mark Paid</button>
+</div>`;
+});
+
+document.getElementById("adminPanel").innerHTML=html;
 }
 
-function completeOrder(index){
-  let orders=JSON.parse(localStorage.getItem("orders")||"[]")
-  let msg=prompt("Delivery Message:")
-  let pdata=prompt("Private Delivery Data:")
-
-  orders[index].status="Completed"
-  orders[index].message=msg
-  orders[index].privateData=pdata
-
-  localStorage.setItem("orders",JSON.stringify(orders))
-  renderOrders()
+function addProduct(){
+let n=document.getElementById("pname").value;
+let pr=document.getElementById("pprice").value;
+let im=document.getElementById("pimg").value;
+if(!n||!pr||!im){alert("Fill all");return;}
+products.push({name:n,price:Number(pr),img:im});
+save();
+openAdmin();
 }
+
+function markPaid(i){
+orders[i].status="Paid";
+save();
+openAdmin();
+}
+
+renderStore();
 
 </script>
-
 </body>
 </html>
